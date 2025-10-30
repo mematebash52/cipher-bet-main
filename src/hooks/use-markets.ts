@@ -46,6 +46,37 @@ export function useMarkets() {
         windowSize: windowSize.toString(),
       });
 
+      // Helper: fetch logs in chunks to avoid freetier 10k-block range limits
+      async function fetchLogsChunked<TLog = unknown>(params: {
+        startBlock: bigint;
+        endBlock: bigint;
+        chunkSize?: bigint;
+        address: `0x${string}`;
+        eventName: string;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        args?: any;
+      }) {
+        const maxRange = params.chunkSize ?? 9000n; // keep below 10000
+        const all: TLog[] = [] as TLog[];
+        let start = params.startBlock;
+        while (start <= params.endBlock) {
+          const end = (start + maxRange) < params.endBlock ? (start + maxRange) : params.endBlock;
+          // @ts-expect-error viem typed generics
+          const part = await client.getLogs({
+            address: params.address,
+            abi: ConfidentialMarketAbi,
+            eventName: params.eventName as never,
+            fromBlock: start,
+            toBlock: end,
+            args: params.args,
+          });
+          // @ts-expect-error accumulate logs
+          all.push(...part);
+          start = end + 1n;
+        }
+        return all as TLog[];
+      }
+
       // Read MarketCreated events within the window (use ABI to avoid index mismatches)
       let createdLogs = await client.getLogs({
         address: CONFIDENTIAL_MARKET_ADDRESS,
@@ -57,13 +88,12 @@ export function useMarkets() {
 
       // Fallback: if no logs found, expand to genesis
       if (createdLogs.length === 0 && fromBlock !== 0n) {
-        console.warn('⚠️ No MarketCreated logs found in window, retrying from genesis...');
-        createdLogs = await client.getLogs({
+        console.warn('⚠️ No MarketCreated logs in window, scanning from genesis in chunks...');
+        createdLogs = await fetchLogsChunked({
           address: CONFIDENTIAL_MARKET_ADDRESS,
-          abi: ConfidentialMarketAbi,
           eventName: 'MarketCreated',
-          fromBlock: 0n,
-          toBlock: 'latest',
+          startBlock: 0n,
+          endBlock: latest,
         });
       }
 
