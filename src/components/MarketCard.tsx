@@ -67,7 +67,7 @@ const MarketCard = ({
       console.error("Bet failed:", e);
       const error = e as { message?: string; shortMessage?: string; name?: string };
 
-      // 检查是否是用户取消交易
+      // Check if the user cancelled the transaction
       if (error?.message?.includes("User rejected") ||
           error?.message?.includes("User denied") ||
           error?.shortMessage?.includes("User rejected")) {
@@ -75,7 +75,7 @@ const MarketCard = ({
         return;
       }
 
-      // 检查其他常见错误
+      // Check other common errors
       if (error?.message?.includes("insufficient funds")) {
         toast.error("Insufficient funds. Ensure you have enough ETH for gas.");
         return;
@@ -86,7 +86,7 @@ const MarketCard = ({
         return;
       }
 
-      // 显示通用错误消息
+      // Show a generic error message
       toast.error(error?.shortMessage || error?.message || "Bet failed, please retry");
     } finally {
       setLoadingOption(null);

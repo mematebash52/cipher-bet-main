@@ -35,7 +35,8 @@ const Hero = () => {
         </h1>
 
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-          私密预测市场平台。全程加密下注与赔率计算，结果公布后统一解密分配。
+          A privacy-preserving prediction market. Bets and odds are fully encrypted;
+          results are decrypted and settled after they are revealed.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">

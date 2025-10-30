@@ -14,13 +14,13 @@ const ActiveMarkets = () => {
             </span>
           </h2>
           <p className="text-xl text-muted-foreground">
-            加密预测热门市场，选择您感兴趣的话题参与
+            Explore popular encrypted markets and participate in topics you care about
           </p>
         </div>
 
         {loading && (
           <div className="text-center text-muted-foreground">
-            加载市场数据中...
+            Loading markets...
           </div>
         )}
 

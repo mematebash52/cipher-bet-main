@@ -34,11 +34,11 @@ export function useWallet() {
     setAccount(null);
   }, []);
 
-  // 自动检测已连接的账户
+  // Auto-detect connected account
   useEffect(() => {
     if (!window.ethereum) return;
 
-    // 检查是否已经连接
+    // Check if already connected
     const checkConnection = async () => {
       try {
         const accs = await window.ethereum.request({ method: "eth_accounts" }) as string[];
