@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getPublicClient } from "@/lib/viem";
 import { CONFIDENTIAL_MARKET_ADDRESS } from "@/lib/constants";
 import { getMarketInfo } from "@/lib/contract";
+import { ConfidentialMarketAbi } from "@/abi/ConfidentialMarket";
 
 export interface Market {
   id: number;
@@ -45,21 +46,26 @@ export function useMarkets() {
         windowSize: windowSize.toString(),
       });
 
-      // Read MarketCreated events within the window
-      const createdLogs = await client.getLogs({
+      // Read MarketCreated events within the window (use ABI to avoid index mismatches)
+      let createdLogs = await client.getLogs({
         address: CONFIDENTIAL_MARKET_ADDRESS,
-        event: {
-          type: 'event',
-          name: 'MarketCreated',
-          inputs: [
-            { type: 'uint256', indexed: true, name: 'marketId' },
-            { type: 'string', indexed: false, name: 'question' },
-            { type: 'uint256', indexed: false, name: 'endTime' },
-          ],
-        },
+        abi: ConfidentialMarketAbi,
+        eventName: 'MarketCreated',
         fromBlock,
         toBlock: 'latest',
       });
+
+      // Fallback: if no logs found, expand to genesis
+      if (createdLogs.length === 0 && fromBlock !== 0n) {
+        console.warn('⚠️ No MarketCreated logs found in window, retrying from genesis...');
+        createdLogs = await client.getLogs({
+          address: CONFIDENTIAL_MARKET_ADDRESS,
+          abi: ConfidentialMarketAbi,
+          eventName: 'MarketCreated',
+          fromBlock: 0n,
+          toBlock: 'latest',
+        });
+      }
 
       console.log(`✅ Found ${createdLogs.length} MarketCreated events`);
 
@@ -82,14 +88,8 @@ export function useMarkets() {
           // Count unique participants
           const betLogs = await client.getLogs({
             address: CONFIDENTIAL_MARKET_ADDRESS,
-            event: {
-              type: 'event',
-              name: 'BetPlaced',
-              inputs: [
-                { type: 'uint256', indexed: true, name: 'marketId' },
-                { type: 'address', indexed: true, name: 'better' },
-              ],
-            },
+            abi: ConfidentialMarketAbi,
+            eventName: 'BetPlaced',
             args: { marketId: BigInt(id) },
             fromBlock,
             toBlock: 'latest',
