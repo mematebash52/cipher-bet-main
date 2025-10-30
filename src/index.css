@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 10 35% 8%;
+    --foreground: 30 40% 98%;
+
+    --card: 10 30% 12%;
+    --card-foreground: 30 40% 98%;
+
+    --popover: 10 35% 10%;
+    --popover-foreground: 30 40% 98%;
+
+    --primary: 15 85% 58%;
+    --primary-foreground: 30 40% 98%;
+    --primary-glow: 20 90% 65%;
+
+    --secondary: 10 25% 18%;
+    --secondary-foreground: 30 40% 98%;
+
+    --muted: 10 20% 20%;
+    --muted-foreground: 25 20% 65%;
+
+    --accent: 40 95% 60%;
+    --accent-foreground: 10 35% 8%;
+    --accent-glow: 45 98% 68%;
+
+    --success: 150 70% 50%;
+    --success-foreground: 10 35% 8%;
+
+    --destructive: 0 70% 60%;
+    --destructive-foreground: 30 40% 98%;
+
+    --border: 10 20% 25%;
+    --input: 10 20% 20%;
+    --ring: 15 85% 58%;
+
+    --radius: 0.75rem;
+
+    --gradient-primary: linear-gradient(135deg, hsl(15 85% 58%), hsl(20 90% 65%));
+    --gradient-accent: linear-gradient(135deg, hsl(40 95% 60%), hsl(20 90% 65%));
+    --gradient-bg: linear-gradient(180deg, hsl(10 35% 8%), hsl(15 30% 12%));
+    --gradient-card: linear-gradient(135deg, hsl(10 30% 12% / 0.6), hsl(15 25% 15% / 0.4));
+    
+    --shadow-glow: 0 0 40px hsl(15 85% 58% / 0.4);
+    --shadow-accent-glow: 0 0 40px hsl(40 95% 60% / 0.4);
+    --shadow-card: 0 10px 40px hsl(10 35% 5% / 0.5);
+
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    background: linear-gradient(180deg, hsl(10 35% 8%), hsl(15 30% 12%));
+    min-height: 100vh;
+  }
+
+  .glass-card {
+    background: linear-gradient(135deg, hsl(10 30% 12% / 0.6), hsl(15 25% 15% / 0.4));
+    backdrop-filter: blur(20px);
+    border: 1px solid hsl(10 20% 25%);
+  }
+
+  .glow-text {
+    text-shadow: 0 0 20px hsl(15 85% 58% / 0.6);
+  }
+
+  .glow-accent-text {
+    text-shadow: 0 0 20px hsl(40 95% 60% / 0.6);
+  }
+}

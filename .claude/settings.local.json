@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run hh:compile:*)",
+      "Bash(npm run hh:deploy:zama:*)",
+      "Bash(npx hardhat help)",
+      "Bash(npx hardhat:*)",
+      "Bash(chmod:*)",
+      "Bash(./verify-fhevm.sh:*)",
+      "Bash(TARGET=v2 npm run hh:deploy:sepolia:*)",
+      "Bash(cat:*)",
+      "Bash(VERCEL_TOKEN=8miqaKlOqaGkAh3gOUx9XBZS vercel --prod --yes --token 8miqaKlOqaGkAh3gOUx9XBZS)",
+      "Bash(npm run build:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
