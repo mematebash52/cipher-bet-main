@@ -142,24 +142,25 @@ const MarketCard = ({
           const isAnyLoading = loadingOption !== null;
 
           return (
-            <Button
-              key={o.name}
-              className="bg-gradient-to-r from-primary to-primary-glow hover:shadow-[var(--shadow-glow)] transition-all"
-              onClick={() => onPlaceEncryptedBet(i)}
-              disabled={isAnyLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <Lock className="w-4 h-4 mr-2" />
-                  Bet {o.name}
-                </>
-              )}
-            </Button>
+          <Button
+            key={o.name}
+            className="bg-gradient-to-r from-primary to-primary-glow hover:shadow-[var(--shadow-glow)] transition-all"
+            onClick={() => onPlaceEncryptedBet(i)}
+            disabled={isAnyLoading}
+            aria-busy={isAnyLoading}
+          >
+            {isAnyLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <Lock className="w-4 h-4 mr-2" />
+                Bet {o.name}
+              </>
+            )}
+          </Button>
           );
         })}
       </div>
