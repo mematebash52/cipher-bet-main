@@ -3,7 +3,7 @@ export const ConfidentialMarketAbi = [
   {
     "anonymous": false,
     "inputs": [
-      { "indexed": false, "internalType": "uint256", "name": "marketId", "type": "uint256" },
+      { "indexed": true, "internalType": "uint256", "name": "marketId", "type": "uint256" },
       { "indexed": false, "internalType": "string", "name": "question", "type": "string" },
       { "indexed": false, "internalType": "uint256", "name": "endTime", "type": "uint256" }
     ],
@@ -45,7 +45,7 @@ export const ConfidentialMarketAbi = [
   {
     "inputs": [
       { "internalType": "uint256", "name": "marketId", "type": "uint256" },
-      { "internalType": "einput", "name": "encryptedOption", "type": "bytes32" },
+      { "internalType": "externalEuint32", "name": "encryptedOption", "type": "bytes32" },
       { "internalType": "bytes", "name": "inputProof", "type": "bytes" }
     ],
     "name": "placeBet",
