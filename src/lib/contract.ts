@@ -84,6 +84,18 @@ export async function getMarketInfo(marketId: bigint, contractAddress?: Address)
   return info as [string, bigint, boolean, boolean, bigint];
 }
 
+export async function getMarketCounter(contractAddress?: Address) {
+  const pub = getPublicClient();
+  // @ts-expect-error viem readonly abi inference is incompatible with our const tuple typings
+  const counter = await pub.readContract({
+    address: (contractAddress ?? CONFIDENTIAL_MARKET_ADDRESS) as Address,
+    abi: ConfidentialMarketAbi,
+    functionName: "marketCounter",
+    args: [],
+  });
+  return counter as bigint;
+}
+
 export async function createMarketOnchain(params: { question: string; durationSeconds: bigint; account: Address; contractAddress?: Address; }) {
   const wallet = getWalletClient();
   const hash = await wallet.writeContract({

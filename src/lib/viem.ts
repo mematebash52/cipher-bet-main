@@ -1,4 +1,4 @@
-import { createPublicClient, createWalletClient, custom, http } from "viem";
+import { createPublicClient, createWalletClient, custom, http, fallback } from "viem";
 import { sepolia } from "viem/chains";
 
 // Window.ethereum is declared in use-wallet.ts as any
@@ -11,10 +11,19 @@ const RPC_URL: string =
     // Node-like env (fallback for previews)
     || (typeof process !== 'undefined' && (process as any)?.env?.VITE_SEPOLIA_RPC_URL)
     // Safe default RPC that supports browser CORS
-    || 'https://sepolia.drpc.org');
+  || 'https://sepolia.drpc.org');
+
+const RPC_FALLBACK_URLS: string[] = Array.from(new Set([
+  RPC_URL,
+  'https://ethereum-sepolia.publicnode.com',
+  'https://endpoints.omniatech.io/v1/eth/sepolia/public',
+]));
 
 export function getPublicClient() {
-  return createPublicClient({ chain: sepolia, transport: http(RPC_URL) });
+  return createPublicClient({
+    chain: sepolia,
+    transport: fallback(RPC_FALLBACK_URLS.map((u) => http(u)) as [ReturnType<typeof http>, ...ReturnType<typeof http>[]]),
+  });
 }
 
 export function getWalletClient() {

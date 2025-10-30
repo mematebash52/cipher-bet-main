@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getPublicClient } from "@/lib/viem";
 import { CONFIDENTIAL_MARKET_ADDRESS } from "@/lib/constants";
-import { getMarketInfo } from "@/lib/contract";
+import { getMarketInfo, getMarketCounter } from "@/lib/contract";
 import { ConfidentialMarketAbi } from "@/abi/ConfidentialMarket";
 
 export interface Market {
@@ -77,69 +77,69 @@ export function useMarkets() {
         return all as TLog[];
       }
 
-      // Read MarketCreated events within the window (use ABI to avoid index mismatches)
-      let createdLogs = await client.getLogs({
-        address: CONFIDENTIAL_MARKET_ADDRESS,
-        abi: ConfidentialMarketAbi,
-        eventName: 'MarketCreated',
-        fromBlock,
-        toBlock: 'latest',
-      });
-
-      // Fallback: if no logs found, expand to genesis
-      if (createdLogs.length === 0 && fromBlock !== 0n) {
-        console.warn('⚠️ No MarketCreated logs in window, scanning from genesis in chunks...');
-        createdLogs = await fetchLogsChunked({
+      // Prefer counter-based enumeration to avoid heavy log queries
+      let result: Market[] = [];
+      try {
+        const counter = await getMarketCounter();
+        console.log(`🔢 marketCounter = ${counter.toString()}`);
+        const total = Number(counter);
+        for (let id = 1; id <= total; id++) {
+          try {
+            console.log(`📍 Loading market ${id} via counter...`);
+            const [question, endTime, resolved, outcome, totalParticipants] = await getMarketInfo(BigInt(id));
+            result.push({
+              id,
+              title: question,
+              category: resolved ? (outcome ? 'Resolved: YES' : 'Resolved: NO') : 'Active',
+              endDate: new Date(Number(endTime) * 1000).toLocaleString(),
+              totalVolume: `$${totalParticipants.toString()}`,
+              participants: Number(totalParticipants),
+              options: [
+                { name: 'Yes', odds: '—', percentage: 50 },
+                { name: 'No', odds: '—', percentage: 50 },
+              ],
+            });
+          } catch (e) {
+            console.warn('❌ Failed to load market via counter for id', id, e);
+          }
+        }
+      } catch (e) {
+        console.warn('⚠️ counter path failed, fallback to logs...', e);
+        // If counter fails, fallback to logs in small chunks
+        const createdLogs = await fetchLogsChunked({
           address: CONFIDENTIAL_MARKET_ADDRESS,
           eventName: 'MarketCreated',
           startBlock: 0n,
           endBlock: latest,
         });
-      }
-
-      console.log(`✅ Found ${createdLogs.length} MarketCreated events`);
-
-      // Deduplicate and keep the latest creation record per id
-      const idSet = new Set<number>();
-      const ids: number[] = [];
-      for (const log of createdLogs) {
-        const id = Number(log.args.marketId as bigint);
-        if (!idSet.has(id)) {
-          idSet.add(id);
-          ids.push(id);
+        console.log(`✅ Found ${createdLogs.length} MarketCreated events (chunked)`);
+        const idSet = new Set<number>();
+        const ids: number[] = [];
+        for (const log of createdLogs) {
+          const id = Number(log.args.marketId as bigint);
+          if (!idSet.has(id)) {
+            idSet.add(id);
+            ids.push(id);
+          }
         }
-      }
-
-      const result: Market[] = [];
-      for (const id of ids) {
-        try {
-          console.log(`📍 Loading market ${id}...`);
-          const [question, endTime, resolved, outcome, totalParticipants] = await getMarketInfo(BigInt(id));
-          // Count unique participants
-          const betLogs = await client.getLogs({
-            address: CONFIDENTIAL_MARKET_ADDRESS,
-            abi: ConfidentialMarketAbi,
-            eventName: 'BetPlaced',
-            args: { marketId: BigInt(id) },
-            fromBlock,
-            toBlock: 'latest',
-          });
-          const uniqueParticipants = new Set(betLogs.map((l) => l.args.better)).size;
-          console.log(`✅ Market ${id} loaded:`, { question, resolved, participants: uniqueParticipants });
-          result.push({
-            id,
-            title: question,
-            category: resolved ? (outcome ? 'Resolved: YES' : 'Resolved: NO') : 'Active',
-            endDate: new Date(Number(endTime) * 1000).toLocaleString(),
-            totalVolume: `$${totalParticipants.toString()}`,
-            participants: uniqueParticipants,
-            options: [
-              { name: 'Yes', odds: '—', percentage: 50 },
-              { name: 'No', odds: '—', percentage: 50 },
-            ],
-          });
-        } catch (e) {
-          console.warn('❌ Failed to load market info for id', id, e);
+        for (const id of ids) {
+          try {
+            const [question, endTime, resolved, outcome, totalParticipants] = await getMarketInfo(BigInt(id));
+            result.push({
+              id,
+              title: question,
+              category: resolved ? (outcome ? 'Resolved: YES' : 'Resolved: NO') : 'Active',
+              endDate: new Date(Number(endTime) * 1000).toLocaleString(),
+              totalVolume: `$${totalParticipants.toString()}`,
+              participants: Number(totalParticipants),
+              options: [
+                { name: 'Yes', odds: '—', percentage: 50 },
+                { name: 'No', odds: '—', percentage: 50 },
+              ],
+            });
+          } catch (e2) {
+            console.warn('❌ Failed to load market info for id', id, e2);
+          }
         }
       }
 
